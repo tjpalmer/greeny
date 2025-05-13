@@ -1,21 +1,39 @@
-use macroquad::{Error, miniquad::window::screen_size, prelude::*};
+use macroquad::{miniquad::window::screen_size, prelude::*};
 
 #[macroquad::main("Green Island")]
-async fn main() -> Result<(), Error> {
+async fn main() {
     let mut game = Game::default();
-    let mut fullscreen = false;
-    let tiles = Texture2D::from_file_with_format(TILES, None);
-    tiles.set_filter(FilterMode::Nearest);
-    loop {
-        game.update_screen();
-        if is_key_pressed(KeyCode::F11)
-            || (is_key_down(KeyCode::LeftAlt) || is_key_down(KeyCode::RightAlt))
-                && is_key_pressed(KeyCode::Enter)
-        {
-            fullscreen = !fullscreen;
-            set_fullscreen(fullscreen);
+    game.run().await;
+}
+
+#[derive(Default)]
+struct Game {
+    assets: Option<Assets>,
+    fullscreen: bool,
+    game_metrics: GameMetrics,
+    screen_metrics: ScreenMetrics,
+}
+
+impl Game {
+    async fn run(&mut self) {
+        self.load();
+        loop {
+            self.update_screen();
+            self.handle_input();
+            self.draw();
+            next_frame().await
         }
-        let Game { screen_metrics, .. } = game;
+    }
+
+    fn draw(&self) {
+        let Self {
+            assets: Some(assets),
+            screen_metrics,
+            ..
+        } = self
+        else {
+            panic!()
+        };
         clear_background(BLACK);
         draw_rectangle(
             screen_metrics.sky_start.x,
@@ -23,6 +41,16 @@ async fn main() -> Result<(), Error> {
             screen_metrics.sky_size.x,
             screen_metrics.sky_size.y,
             Color::from_hex(0xA5C7ED),
+        );
+        draw_texture_ex(
+            &assets.mountains,
+            screen_metrics.full_start.x,
+            screen_metrics.full_start.y,
+            WHITE,
+            DrawTextureParams {
+                dest_size: Some(screen_metrics.full_size),
+                ..Default::default()
+            },
         );
         draw_rectangle(
             screen_metrics.ground_start.x,
@@ -33,7 +61,7 @@ async fn main() -> Result<(), Error> {
         );
         // draw_text("IT WORKS!", 20.0, 20.0, 30.0, DARKGRAY);
         draw_texture_ex(
-            &tiles,
+            &assets.tiles,
             screen_metrics.full_start.x,
             screen_metrics.full_start.y,
             WHITE,
@@ -42,17 +70,25 @@ async fn main() -> Result<(), Error> {
                 ..Default::default()
             },
         );
-        next_frame().await
     }
-}
 
-#[derive(Default)]
-struct Game {
-    game_metrics: GameMetrics,
-    screen_metrics: ScreenMetrics,
-}
+    fn handle_input(&mut self) {
+        if is_key_pressed(KeyCode::F11)
+            || (is_key_down(KeyCode::LeftAlt) || is_key_down(KeyCode::RightAlt))
+                && is_key_pressed(KeyCode::Enter)
+        {
+            self.fullscreen = !self.fullscreen;
+            set_fullscreen(self.fullscreen);
+        }
+    }
 
-impl Game {
+    fn load(&mut self) {
+        self.assets = Some(Assets {
+            mountains: load_texture(MOUNTAINS),
+            tiles: load_texture(TILES),
+        });
+    }
+
     fn update_screen(&mut self) {
         let screen_size = Vec2::from_array(screen_size().into());
         let Self { game_metrics, .. } = self;
@@ -73,6 +109,11 @@ impl Game {
             sky_start,
         };
     }
+}
+
+struct Assets {
+    mountains: Texture2D,
+    tiles: Texture2D,
 }
 
 #[allow(unused)]
@@ -132,4 +173,11 @@ impl Default for GameMetrics {
     }
 }
 
+const MOUNTAINS: &[u8] = include_bytes!("../sprites/mountains.png");
 const TILES: &[u8] = include_bytes!("../sprites/distinct.png");
+
+fn load_texture(bytes: &[u8]) -> Texture2D {
+    let texture = Texture2D::from_file_with_format(bytes, None);
+    texture.set_filter(FilterMode::Nearest);
+    texture
+}
