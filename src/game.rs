@@ -2,6 +2,7 @@ use macroquad::{miniquad::window::screen_size, prelude::*};
 
 use crate::assets::Assets;
 use crate::info::{GameMetrics, ScreenMetrics};
+use crate::world::World;
 
 #[derive(Default)]
 pub struct Game {
@@ -9,6 +10,7 @@ pub struct Game {
     fullscreen: bool,
     game_metrics: GameMetrics,
     screen_metrics: ScreenMetrics,
+    world: World,
 }
 
 impl Game {
@@ -25,6 +27,7 @@ impl Game {
     fn draw(&self) {
         let Self {
             assets: Some(assets),
+            game_metrics,
             screen_metrics,
             ..
         } = self
@@ -57,13 +60,20 @@ impl Game {
             Color::from_hex(0xC5AD95),
         );
         // draw_text("IT WORKS!", 20.0, 20.0, 30.0, DARKGRAY);
+        let place = screen_metrics.tile(Vec2::new(7.0, 5.0));
         draw_texture_ex(
             &assets.tiles,
-            screen_metrics.full_start.x,
-            screen_metrics.full_start.y,
+            place.x,
+            place.y,
             WHITE,
             DrawTextureParams {
-                dest_size: Some(screen_metrics.full_size),
+                dest_size: Some(screen_metrics.tile_size),
+                source: Some(Rect::new(
+                    assets.tile_info.roadie.x,
+                    assets.tile_info.roadie.y,
+                    game_metrics.tile_size_px.x,
+                    game_metrics.tile_size_px.y,
+                )),
                 ..Default::default()
             },
         );
@@ -80,7 +90,7 @@ impl Game {
     }
 
     fn load(&mut self) {
-        self.assets = Some(Assets::load());
+        self.assets = Some(Assets::load(&self.game_metrics));
     }
 
     fn update_screen(&mut self) {
@@ -94,6 +104,7 @@ impl Game {
         let ground_size = scale * game_metrics.ground_size_px;
         let sky_size = scale * game_metrics.sky_size_px;
         let sky_start = full_start;
+        let tile_size = scale * game_metrics.tile_size_px;
         self.screen_metrics = ScreenMetrics {
             full_size,
             full_start,
@@ -101,6 +112,7 @@ impl Game {
             ground_start,
             sky_size,
             sky_start,
+            tile_size,
         };
     }
 }

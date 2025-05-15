@@ -16,16 +16,6 @@ pub struct GameMetrics {
     pub tile_size_px: Vec2,
 }
 
-#[derive(Clone, Copy, Debug, Default)]
-pub struct ScreenMetrics {
-    pub full_size: Vec2,
-    pub full_start: Vec2,
-    pub ground_size: Vec2,
-    pub ground_start: Vec2,
-    pub sky_size: Vec2,
-    pub sky_start: Vec2,
-}
-
 impl GameMetrics {
     pub fn new() -> Self {
         let full_size = Vec2::splat(15.0);
@@ -48,6 +38,23 @@ impl GameMetrics {
             sky_size_px: sky_size * tile_size_px,
             tile_size_px,
         }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct ScreenMetrics {
+    pub full_size: Vec2,
+    pub full_start: Vec2,
+    pub ground_size: Vec2,
+    pub ground_start: Vec2,
+    pub sky_size: Vec2,
+    pub sky_start: Vec2,
+    pub tile_size: Vec2,
+}
+
+impl ScreenMetrics {
+    pub fn tile(&self, vec: Vec2) -> Vec2 {
+        self.ground_start + vec * self.tile_size
     }
 }
 
