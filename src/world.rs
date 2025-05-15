@@ -48,6 +48,10 @@ where
         self.values[x * self.size_y + y] = value;
     }
 
+    pub fn size(&self) -> Vec2 {
+        Vec2::new(self.size_x() as f32, self.size_y() as f32)
+    }
+
     pub fn size_x(&self) -> usize {
         self.size_x
     }
@@ -69,7 +73,7 @@ pub enum Plant {
 
 impl Plant {
     pub fn rand() -> Self {
-        if rand::gen_range(0.0, 1.0) < 0.7 {
+        if rand::gen_range(0.0, 1.0) < 0.8 {
             return Plant::None;
         }
         let plants = [

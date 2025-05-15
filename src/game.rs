@@ -1,14 +1,16 @@
 use macroquad::{miniquad::window::screen_size, prelude::*};
+// use std::time::{Duration, Instant};
 
 use crate::assets::Assets;
 use crate::info::{GameMetrics, ScreenMetrics};
-use crate::world::World;
+use crate::world::{Plant, Tile, World};
 
 #[derive(Default)]
 pub struct Game {
     assets: Option<Assets>,
     fullscreen: bool,
     game_metrics: GameMetrics,
+    pos: Vec2,
     screen_metrics: ScreenMetrics,
     world: World,
 }
@@ -60,11 +62,11 @@ impl Game {
             Color::from_hex(0xC5AD95),
         );
         // draw_text("IT WORKS!", 20.0, 20.0, 30.0, DARKGRAY);
-        let place = screen_metrics.tile(Vec2::new(7.0, 5.0));
+        let pos = screen_metrics.tile(Vec2::new(7.0, 5.0));
         draw_texture_ex(
             &assets.tiles,
-            place.x,
-            place.y,
+            pos.x,
+            pos.y,
             WHITE,
             DrawTextureParams {
                 dest_size: Some(screen_metrics.tile_size),
@@ -77,6 +79,63 @@ impl Game {
                 ..Default::default()
             },
         );
+        self.draw_world();
+    }
+
+    fn draw_tile(&self, tile: Tile, pos: Vec2) {
+        let Self {
+            assets: Some(assets),
+            game_metrics,
+            screen_metrics,
+            ..
+        } = self
+        else {
+            panic!()
+        };
+        let Assets { tile_info, .. } = assets;
+        let pos = screen_metrics.tile(pos);
+        let source = match tile.plant {
+            Plant::None => return,
+            Plant::NopalBig => tile_info.nopal_big,
+            Plant::NopalSmall => tile_info.nopal_small,
+            Plant::Ocotillo => tile_info.ocotillo,
+            Plant::Saguaro => tile_info.saguaro,
+        };
+        draw_texture_ex(
+            &assets.tiles,
+            pos.x,
+            pos.y,
+            WHITE,
+            DrawTextureParams {
+                dest_size: Some(screen_metrics.scale * source.size()),
+                source: Some(source),
+                ..Default::default()
+            },
+        );
+    }
+
+    fn draw_world(&self) {
+        let Self {
+            game_metrics,
+            world,
+            ..
+        } = self
+        else {
+            panic!()
+        };
+        let min = Vec2::default();
+        let max = world.grid.size();
+        // Margin needs to be larger than any game item.
+        let margin = game_metrics.ground_center + Vec2::new(10.0, 10.0);
+        let start = Vec2::clamp(self.pos - margin, min, max);
+        let end = Vec2::clamp(self.pos + margin, min, max);
+        for y in start.y as usize..end.y as usize {
+            for x in start.x as usize..end.x as usize {
+                let tile = world.grid.at(x, y);
+                let pos = Vec2::new(x as f32, y as f32) - start;
+                self.draw_tile(tile, pos);
+            }
+        }
     }
 
     fn handle_input(&mut self) {
@@ -87,10 +146,24 @@ impl Game {
             self.fullscreen = !self.fullscreen;
             set_fullscreen(self.fullscreen);
         }
+        if is_key_pressed(KeyCode::Up) || is_key_pressed(KeyCode::W) {
+            self.pos.y -= 1.0;
+        }
+        if is_key_pressed(KeyCode::Down) || is_key_pressed(KeyCode::S) {
+            self.pos.y += 1.0;
+        }
+        if is_key_pressed(KeyCode::Left) || is_key_pressed(KeyCode::A) {
+            self.pos.x -= 1.0;
+        }
+        if is_key_pressed(KeyCode::Right) || is_key_pressed(KeyCode::D) {
+            self.pos.x += 1.0;
+        }
     }
 
     fn load(&mut self) {
         self.assets = Some(Assets::load(&self.game_metrics));
+        let Self { world, .. } = self;
+        self.pos = Vec2::floor(world.grid.size() * 0.5);
     }
 
     fn update_screen(&mut self) {
@@ -110,6 +183,7 @@ impl Game {
             full_start,
             ground_size,
             ground_start,
+            scale,
             sky_size,
             sky_start,
             tile_size,
