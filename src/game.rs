@@ -125,21 +125,19 @@ impl Game {
             game_metrics,
             world,
             ..
-        } = self
-        else {
-            panic!()
-        };
+        } = self;
         let min = Vec2::default();
         let max = world.grid.size();
         // Margin needs to be larger than any game item.
-        let margin = game_metrics.ground_center + Vec2::new(10.0, 10.0);
-        let start = Vec2::clamp(self.pos - margin, min, max);
-        let end = Vec2::clamp(self.pos + margin, min, max);
+        let margin = Vec2::new(10.0, 10.0);
+        let extent = game_metrics.ground_center + margin;
+        let start = Vec2::clamp(self.pos - extent, min, max);
+        let end = Vec2::clamp(self.pos + extent, min, max);
         for y in start.y as usize..end.y as usize {
             for x in start.x as usize..end.x as usize {
                 // TODO Draw with proper offset.
                 let tile = world.grid.at(x, y);
-                let pos = Vec2::new(x as f32, y as f32) - start;
+                let pos = Vec2::new(x as f32, y as f32) - start - margin;
                 self.draw_tile(tile, pos);
             }
         }
@@ -154,16 +152,16 @@ impl Game {
             set_fullscreen(self.fullscreen);
         }
         if is_key_pressed(KeyCode::Up) || is_key_pressed(KeyCode::W) {
-            self.pos.y -= 1.0;
+            self.maybe_move_by(Vec2::new(0.0, -1.0));
         }
         if is_key_pressed(KeyCode::Down) || is_key_pressed(KeyCode::S) {
-            self.pos.y += 1.0;
+            self.maybe_move_by(Vec2::new(0.0, 1.0));
         }
         if is_key_pressed(KeyCode::Left) || is_key_pressed(KeyCode::A) {
-            self.pos.x -= 1.0;
+            self.maybe_move_by(Vec2::new(-1.0, 0.0));
         }
         if is_key_pressed(KeyCode::Right) || is_key_pressed(KeyCode::D) {
-            self.pos.x += 1.0;
+            self.maybe_move_by(Vec2::new(1.0, 0.0));
         }
     }
 
@@ -171,6 +169,20 @@ impl Game {
         self.assets = Some(Assets::load(&self.game_metrics));
         let Self { world, .. } = self;
         self.pos = Vec2::floor(world.grid.size() * 0.5);
+    }
+
+    fn maybe_move_by(&mut self, vec: Vec2) {
+        let next = self.pos + vec;
+        if !self.occupied(next) {
+            self.pos = next;
+        }
+    }
+
+    fn occupied(&self, vec: Vec2) -> bool {
+        !matches!(
+            self.world.grid.at(vec.x as usize, vec.y as usize).plant,
+            Plant::None
+        )
     }
 
     fn update_screen(&mut self) {
