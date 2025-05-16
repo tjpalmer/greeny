@@ -8,10 +8,12 @@ use crate::world::{Plant, Tile, World};
 #[derive(Default)]
 pub struct Game {
     assets: Option<Assets>,
+    camera: Option<Camera2D>,
     fullscreen: bool,
     game_metrics: GameMetrics,
     pos: Vec2,
     screen_metrics: ScreenMetrics,
+    target: Option<RenderTarget>,
     world: World,
 }
 
@@ -28,6 +30,7 @@ impl Game {
     }
 
     fn draw(&self) {
+        set_camera(self.camera.as_ref().unwrap());
         let Self {
             assets: Some(assets),
             game_metrics,
@@ -81,6 +84,31 @@ impl Game {
             },
         );
         self.draw_world();
+        draw_rectangle(
+            0.0,
+            0.0,
+            game_metrics.full_size_px.x,
+            game_metrics.full_size_px.y,
+            RED,
+        );
+        set_default_camera();
+        clear_background(BLACK);
+        draw_texture_ex(
+            &self.target.as_ref().unwrap().texture,
+            screen_metrics.full_start.x,
+            screen_metrics.full_start.y,
+            WHITE,
+            DrawTextureParams {
+                dest_size: Some(screen_metrics.full_size),
+                // source: Some(Rect::new(
+                //     assets.tile_info.roadie.x,
+                //     assets.tile_info.roadie.y,
+                //     game_metrics.tile_size_px.x,
+                //     game_metrics.tile_size_px.y,
+                // )),
+                ..Default::default()
+            },
+        );
     }
 
     fn draw_tile(&self, tile: Tile, pos: Vec2) {
@@ -125,10 +153,7 @@ impl Game {
             game_metrics,
             world,
             ..
-        } = self
-        else {
-            panic!()
-        };
+        } = self;
         let min = Vec2::default();
         let max = world.grid.size();
         // Margin needs to be larger than any game item.
@@ -168,8 +193,23 @@ impl Game {
     }
 
     fn load(&mut self) {
-        self.assets = Some(Assets::load(&self.game_metrics));
-        let Self { world, .. } = self;
+        let Self {
+            game_metrics,
+            world,
+            ..
+        } = self;
+        self.assets = Some(Assets::load(&game_metrics));
+        self.target = Some(render_target(
+            game_metrics.full_size_px.x as u32,
+            game_metrics.full_size_px.y as u32,
+        ));
+        self.camera = Some(Camera2D::from_display_rect(Rect::new(
+            0.0,
+            0.0,
+            game_metrics.full_size_px.x,
+            game_metrics.full_size_px.y,
+        )));
+        self.camera.as_mut().unwrap().render_target = Some(self.target.clone().unwrap());
         self.pos = Vec2::floor(world.grid.size() * 0.5);
     }
 
