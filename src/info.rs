@@ -55,7 +55,7 @@ pub struct ScreenMetrics {
 
 impl ScreenMetrics {
     pub fn tile(&self, vec: Vec2) -> Vec2 {
-        self.ground_start + vec * self.tile_size
+        self.ground_start + (vec + Vec2::new(0.0, -1.0)) * self.tile_size
     }
 }
 

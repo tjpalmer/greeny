@@ -144,14 +144,14 @@ impl Game {
         for y in start.y as usize..end.y as usize {
             let draw_y = match front {
                 false => {
-                    if (y as f32) >= self.pos.y - game_metrics.ground_center.y - 1.0 {
+                    if (y as f32) >= self.pos.y - game_metrics.ground_center.y {
                         continue;
                     }
-                    // TODO Why is `- margin.y - 2.0` correct?
-                    self.pos.y - (y as f32 - self.pos.y) - margin.y - 2.0
+                    // TODO This formula ended up being hacky.
+                    self.pos.y - (y as f32 - self.pos.y) - margin.y
                 }
                 true => {
-                    if (y as f32) < self.pos.y - game_metrics.ground_center.y - 1.0 {
+                    if (y as f32) < self.pos.y - game_metrics.ground_center.y {
                         continue;
                     }
                     y as f32
