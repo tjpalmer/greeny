@@ -39,6 +39,7 @@ impl Game {
             panic!()
         };
         clear_background(BLACK);
+        // Sky.
         draw_rectangle(
             screen_metrics.sky_start.x,
             screen_metrics.sky_start.y,
@@ -46,6 +47,7 @@ impl Game {
             screen_metrics.sky_size.y,
             Color::from_hex(0xA5C7ED),
         );
+        // Mountains.
         draw_texture_ex(
             &assets.mountains,
             screen_metrics.full_start.x,
@@ -56,6 +58,9 @@ impl Game {
                 ..Default::default()
             },
         );
+        // Behind horizon.
+        self.draw_world(false);
+        // Ground.
         draw_rectangle(
             screen_metrics.ground_start.x,
             screen_metrics.ground_start.y,
@@ -82,7 +87,7 @@ impl Game {
                 ..Default::default()
             },
         );
-        self.draw_world();
+        self.draw_world(true);
         self.mask_edges();
     }
 
@@ -123,7 +128,7 @@ impl Game {
         );
     }
 
-    fn draw_world(&self) {
+    fn draw_world(&self, front: bool) {
         let Self {
             game_metrics,
             world,
@@ -134,13 +139,27 @@ impl Game {
         // Margin needs to be larger than any game item.
         let margin = Vec2::new(10.0, 10.0);
         let extent = game_metrics.ground_center + margin;
-        let start = Vec2::clamp(self.pos - extent, min, max);
-        let end = Vec2::clamp(self.pos + extent, min, max);
+        let mut start = Vec2::clamp(self.pos - extent, min, max);
+        let mut end = Vec2::clamp(self.pos + extent, min, max);
         for y in start.y as usize..end.y as usize {
+            let draw_y = match front {
+                false => {
+                    if (y as f32) >= self.pos.y - game_metrics.ground_center.y - 1.0 {
+                        continue;
+                    }
+                    // TODO Why is `- margin.y - 2.0` correct?
+                    self.pos.y - (y as f32 - self.pos.y) - margin.y - 2.0
+                }
+                true => {
+                    if (y as f32) < self.pos.y - game_metrics.ground_center.y - 1.0 {
+                        continue;
+                    }
+                    y as f32
+                }
+            };
             for x in start.x as usize..end.x as usize {
-                // TODO Draw with proper offset.
                 let tile = world.grid.at(x, y);
-                let pos = Vec2::new(x as f32, y as f32) - start - margin;
+                let pos = Vec2::new(x as f32, draw_y) - start - margin;
                 self.draw_tile(tile, pos);
             }
         }
@@ -180,20 +199,8 @@ impl Game {
         // I can't seem to access scissors, and render to texture was failing in wasm.
         let Self { screen_metrics, .. } = self;
         let screen_size = Vec2::from_array(screen_size().into());
-        draw_rectangle(
-            0.0,
-            0.0,
-            screen_size.x,
-            screen_metrics.full_start.y,
-            BLACK,
-        );
-        draw_rectangle(
-            0.0,
-            0.0,
-            screen_metrics.full_start.x,
-            screen_size.y,
-            BLACK,
-        );
+        draw_rectangle(0.0, 0.0, screen_size.x, screen_metrics.full_start.y, BLACK);
+        draw_rectangle(0.0, 0.0, screen_metrics.full_start.x, screen_size.y, BLACK);
         let full_end = screen_metrics.full_start + screen_metrics.full_size;
         draw_rectangle(
             full_end.x,
