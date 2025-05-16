@@ -220,10 +220,12 @@ impl Game {
 
     fn maybe_move_by(&mut self, vec: Vec2) {
         if vec.x != 0.0 {
-            if vec.x != self.facing_x {
-                self.facing_x = vec.x;
-                return;
-            }
+            self.facing_x = vec.x;
+            // Use below instead for about face in place.
+            // if vec.x != self.facing_x {
+            //     self.facing_x = vec.x;
+            //     return;
+            // }
         }
         let next = self.pos + vec;
         if !self.occupied(next) {
