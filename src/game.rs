@@ -9,6 +9,7 @@ use crate::world::{Plant, Tile, World};
 pub struct Game {
     assets: Option<Assets>,
     fullscreen: bool,
+    facing_x: f32,
     game_metrics: GameMetrics,
     pos: Vec2,
     screen_metrics: ScreenMetrics,
@@ -71,6 +72,7 @@ impl Game {
             WHITE,
             DrawTextureParams {
                 dest_size: Some(screen_metrics.tile_size),
+                flip_x: self.facing_x < 0.0,
                 source: Some(Rect::new(
                     assets.tile_info.roadie.x,
                     assets.tile_info.roadie.y,
@@ -81,6 +83,7 @@ impl Game {
             },
         );
         self.draw_world();
+        self.mask_edges();
     }
 
     fn draw_tile(&self, tile: Tile, pos: Vec2) {
@@ -168,10 +171,53 @@ impl Game {
     fn load(&mut self) {
         self.assets = Some(Assets::load(&self.game_metrics));
         let Self { world, .. } = self;
+        self.facing_x = 1.0;
         self.pos = Vec2::floor(world.grid.size() * 0.5);
     }
 
+    fn mask_edges(&self) {
+        // Better would be scissors or render to texture then to screen.
+        // I can't seem to access scissors, and render to texture was failing in wasm.
+        let Self { screen_metrics, .. } = self;
+        let screen_size = Vec2::from_array(screen_size().into());
+        draw_rectangle(
+            0.0,
+            0.0,
+            screen_size.x,
+            screen_metrics.full_start.y,
+            BLACK,
+        );
+        draw_rectangle(
+            0.0,
+            0.0,
+            screen_metrics.full_start.x,
+            screen_size.y,
+            BLACK,
+        );
+        let full_end = screen_metrics.full_start + screen_metrics.full_size;
+        draw_rectangle(
+            full_end.x,
+            0.0,
+            screen_size.x - full_end.x,
+            screen_size.y,
+            BLACK,
+        );
+        draw_rectangle(
+            0.0,
+            full_end.y,
+            screen_size.x,
+            screen_size.y - full_end.y,
+            BLACK,
+        );
+    }
+
     fn maybe_move_by(&mut self, vec: Vec2) {
+        if vec.x != 0.0 {
+            if vec.x != self.facing_x {
+                self.facing_x = vec.x;
+                return;
+            }
+        }
         let next = self.pos + vec;
         if !self.occupied(next) {
             self.pos = next;
