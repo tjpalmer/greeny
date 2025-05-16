@@ -139,8 +139,8 @@ impl Game {
         // Margin needs to be larger than any game item.
         let margin = Vec2::new(10.0, 10.0);
         let extent = game_metrics.ground_center + margin;
-        let mut start = Vec2::clamp(self.pos - extent, min, max);
-        let mut end = Vec2::clamp(self.pos + extent, min, max);
+        let start = Vec2::clamp(self.pos - extent, min, max);
+        let end = Vec2::clamp(self.pos + extent, min, max);
         for y in start.y as usize..end.y as usize {
             let draw_y = match front {
                 false => {
