@@ -18,6 +18,7 @@ pub struct Game {
 impl Game {
     pub async fn run(&mut self) {
         self.load();
+        // set_camera(&Camera2D::from_display_rect(Rect::new(0.0, 0.0, 500.0, 500.0)));
         loop {
             self.update_screen();
             self.handle_input();
@@ -93,7 +94,6 @@ impl Game {
             panic!()
         };
         let Assets { tile_info, .. } = assets;
-        let pos = screen_metrics.tile(pos);
         let source = match tile.plant {
             Plant::None => return,
             Plant::NopalBig => tile_info.nopal_big,
@@ -101,6 +101,12 @@ impl Game {
             Plant::Ocotillo => tile_info.ocotillo,
             Plant::Saguaro => tile_info.saguaro,
         };
+        let pos = screen_metrics.tile(pos)
+            - Vec2::floor(
+                (source.size() - game_metrics.tile_size_px) * Vec2::new(0.5, 1.0)
+                    / game_metrics.tile_size_px,
+            ) * game_metrics.tile_size_px
+                * screen_metrics.scale;
         draw_texture_ex(
             &assets.tiles,
             pos.x,
@@ -131,6 +137,7 @@ impl Game {
         let end = Vec2::clamp(self.pos + margin, min, max);
         for y in start.y as usize..end.y as usize {
             for x in start.x as usize..end.x as usize {
+                // TODO Draw with proper offset.
                 let tile = world.grid.at(x, y);
                 let pos = Vec2::new(x as f32, y as f32) - start;
                 self.draw_tile(tile, pos);
