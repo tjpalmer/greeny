@@ -73,16 +73,14 @@ pub enum Plant {
 
 impl Plant {
     pub fn rand() -> Self {
-        if rand::gen_range(0.0, 1.0) < 0.8 {
-            return Plant::None;
+        let n = rand::gen_range(0.0, 1.0);
+        match () {
+            _ if n < 0.8 => Plant::None,
+            _ if n < 0.87 => Plant::NopalSmall,
+            _ if n < 0.94 => Plant::NopalBig,
+            _ if n < 0.98 => Plant::Ocotillo,
+            _ => Plant::Saguaro,
         }
-        let plants = [
-            Plant::NopalBig,
-            Plant::NopalSmall,
-            Plant::Ocotillo,
-            Plant::Saguaro,
-        ];
-        plants[(rand::rand() as usize) % plants.len()]
     }
 }
 
