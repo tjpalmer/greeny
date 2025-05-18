@@ -21,7 +21,7 @@ impl Assets {
 #[allow(unused)]
 pub struct TileInfo {
     pub bead: Vec2,
-    pub bobcat: Vec2,
+    pub bob: Vec2,
     pub coyote: Vec2,
     pub jack: Vec2,
     pub javelina: Vec2,
@@ -29,7 +29,7 @@ pub struct TileInfo {
     pub nopal_small: Rect,
     pub ocotillo: Rect,
     pub rattler: Vec2,
-    pub roadie: Vec2,
+    pub runner: Vec2,
     pub saguaro: Rect,
     pub turkey: Vec2,
 }
@@ -43,7 +43,7 @@ impl TileInfo {
         };
         Self {
             bead: Vec2::new(8.0, 9.0) * game_metrics.tile_size_px,
-            bobcat: Vec2::new(6.0, 8.0) * game_metrics.tile_size_px,
+            bob: Vec2::new(6.0, 8.0) * game_metrics.tile_size_px,
             coyote: Vec2::new(6.0, 9.0) * game_metrics.tile_size_px,
             jack: Vec2::new(7.0, 8.0) * game_metrics.tile_size_px,
             javelina: Vec2::new(5.0, 9.0) * game_metrics.tile_size_px,
@@ -51,7 +51,7 @@ impl TileInfo {
             nopal_small: rect(5, 6, 1, 1),
             ocotillo: rect(11, 5, 3, 3),
             rattler: Vec2::new(7.0, 9.0) * game_metrics.tile_size_px,
-            roadie: Vec2::new(8.0, 8.0) * game_metrics.tile_size_px,
+            runner: Vec2::new(8.0, 8.0) * game_metrics.tile_size_px,
             saguaro: rect(1, 3, 3, 5),
             turkey: Vec2::new(5.0, 8.0) * game_metrics.tile_size_px,
         }

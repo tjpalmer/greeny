@@ -3,7 +3,7 @@ use macroquad::{miniquad::window::screen_size, prelude::*};
 
 use crate::assets::Assets;
 use crate::info::{GameMetrics, ScreenMetrics};
-use crate::world::{Plant, Tile, World};
+use crate::world::{AnimalKind, Occupant, Plant, Tile, World};
 
 #[derive(Default)]
 pub struct Game {
@@ -79,8 +79,8 @@ impl Game {
                 dest_size: Some(screen_metrics.tile_size),
                 flip_x: self.facing_x < 0.0,
                 source: Some(Rect::new(
-                    assets.tile_info.roadie.x,
-                    assets.tile_info.roadie.y,
+                    assets.tile_info.runner.x,
+                    assets.tile_info.runner.y,
                     game_metrics.tile_size_px.x,
                     game_metrics.tile_size_px.y,
                 )),
@@ -102,12 +102,31 @@ impl Game {
             panic!()
         };
         let Assets { tile_info, .. } = assets;
-        let source = match tile.plant {
-            Plant::None => return,
-            Plant::NopalBig => tile_info.nopal_big,
-            Plant::NopalSmall => tile_info.nopal_small,
-            Plant::Ocotillo => tile_info.ocotillo,
-            Plant::Saguaro => tile_info.saguaro,
+        let source = match tile.occupant {
+            Some(occupant) => match occupant {
+                Occupant::Animal(animal_idx) => {
+                    let animal = self.world.animals[animal_idx];
+                    let pos = match animal.kind {
+                        AnimalKind::Bead => tile_info.bead,
+                        AnimalKind::Bob => tile_info.bob,
+                        AnimalKind::Coyote => tile_info.coyote,
+                        AnimalKind::Jack => tile_info.jack,
+                        AnimalKind::Javelina => tile_info.javelina,
+                        AnimalKind::Rattler => tile_info.rattler,
+                        AnimalKind::Runner => tile_info.runner,
+                        AnimalKind::Turkey => tile_info.turkey,
+                    };
+                    let size = game_metrics.tile_size_px;
+                    Rect::new(pos.x, pos.y, size.x, size.y)
+                }
+                Occupant::Plant(plant) => match plant {
+                    Plant::NopalBig => tile_info.nopal_big,
+                    Plant::NopalSmall => tile_info.nopal_small,
+                    Plant::Ocotillo => tile_info.ocotillo,
+                    Plant::Saguaro => tile_info.saguaro,
+                },
+            },
+            None => return,
         };
         let pos = screen_metrics.tile(pos)
             - Vec2::floor(
@@ -219,25 +238,19 @@ impl Game {
     }
 
     fn maybe_move_by(&mut self, vec: Vec2) {
-        if vec.x != 0.0 {
-            self.facing_x = vec.x;
-            // Use below instead for about face in place.
-            // if vec.x != self.facing_x {
-            //     self.facing_x = vec.x;
-            //     return;
-            // }
-        }
         let next = self.pos + vec;
-        if !self.occupied(next) {
+        if self.world.occupied(next) {
+            if vec.x != 0.0 {
+                // Provide an option to change facing when against a wall.
+                // TODO Or will this be an attack later?
+                self.facing_x = -self.facing_x;
+            }
+        } else {
+            if vec.x != 0.0 {
+                self.facing_x = vec.x;
+            }
             self.pos = next;
         }
-    }
-
-    fn occupied(&self, vec: Vec2) -> bool {
-        !matches!(
-            self.world.grid.at(vec.x as usize, vec.y as usize).plant,
-            Plant::None
-        )
     }
 
     fn update_screen(&mut self) {
