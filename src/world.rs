@@ -22,7 +22,7 @@ impl World {
         let area_size = (metrics.ground_size.x * metrics.ground_size.y) as usize;
         let animal_count = selfish.grid.size_x() * selfish.grid.size_y() / area_size;
         // dbg!(animal_count);
-        while selfish.animals.len() < 10_000 {
+        while selfish.animals.len() < animal_count {
             let x = rand::rand() as usize % selfish.grid.size_x();
             let y = rand::rand() as usize % selfish.grid.size_y();
             let pos = Vec2::new(x as f32, y as f32);

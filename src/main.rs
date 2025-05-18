@@ -1,5 +1,5 @@
 use game::Game;
-use std::time::Instant;
+use macroquad::prelude::*;
 
 mod assets;
 mod game;
@@ -8,8 +8,10 @@ mod world;
 
 #[macroquad::main("Green Island")]
 async fn main() {
-    let start = Instant::now();
+    let start = get_time();
     let mut game = Game::default();
-    dbg!(start.elapsed());
+    let done = get_time();
+    let init_ms = (done - start) * 1e3;
+    dbg!(init_ms);
     game.run().await;
 }

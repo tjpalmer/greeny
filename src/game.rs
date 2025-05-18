@@ -239,16 +239,10 @@ impl Game {
 
     fn maybe_move_by(&mut self, vec: Vec2) {
         let next = self.pos + vec;
-        if self.world.occupied(next) {
-            if vec.x != 0.0 {
-                // Provide an option to change facing when against a wall.
-                // TODO Or will this be an attack later?
-                self.facing_x = -self.facing_x;
-            }
-        } else {
-            if vec.x != 0.0 {
-                self.facing_x = vec.x;
-            }
+        if vec.x != 0.0 {
+            self.facing_x = vec.x;
+        }
+        if !self.world.occupied(next) {
             self.pos = next;
         }
     }
