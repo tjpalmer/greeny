@@ -250,10 +250,12 @@ impl Game {
     fn update_screen(&mut self) {
         let screen_size = Vec2::from_array(screen_size().into());
         let Self { game_metrics, .. } = self;
-        let scale = Vec2::floor(screen_size / game_metrics.full_size_px);
+        let scale = Vec2::floor(screen_size / game_metrics.ui_size_px);
         let scale = Vec2::splat(scale.x.min(scale.y));
+        let ui_size = scale * game_metrics.ui_size_px;
+        let ui_start = Vec2::floor((screen_size - ui_size) * 0.5);
         let full_size = scale * game_metrics.full_size_px;
-        let full_start = Vec2::floor((screen_size - full_size) * 0.5);
+        let full_start = Vec2::new(((screen_size - full_size).x * 0.5).floor(), ui_start.y);
         let ground_start = full_start + scale * game_metrics.ground_start_px;
         let ground_size = scale * game_metrics.ground_size_px;
         let sky_size = scale * game_metrics.sky_size_px;
@@ -268,6 +270,7 @@ impl Game {
             sky_size,
             sky_start,
             tile_size,
+            ui_size,
         };
     }
 }

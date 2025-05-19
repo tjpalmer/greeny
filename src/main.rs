@@ -6,12 +6,22 @@ mod game;
 mod info;
 mod world;
 
-#[macroquad::main("Green Island")]
+fn window_conf() -> Conf {
+    Conf {
+        // fullscreen: true,
+        window_height: 540,
+        window_width: 960,
+        window_title: "Green Island".to_owned(),
+        ..Default::default()
+    }
+}
+
+#[macroquad::main(window_conf)]
 async fn main() {
     let start = get_time();
     let mut game = Game::default();
     let done = get_time();
     let init_ms = (done - start) * 1e3;
-    dbg!(init_ms);
+    info!("Started in {:.3}ms", init_ms);
     game.run().await;
 }

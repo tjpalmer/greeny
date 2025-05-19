@@ -14,6 +14,7 @@ pub struct GameMetrics {
     pub sky_size: Vec2,
     pub sky_size_px: Vec2,
     pub tile_size_px: Vec2,
+    pub ui_size_px: Vec2,
 }
 
 impl GameMetrics {
@@ -37,6 +38,7 @@ impl GameMetrics {
             sky_size,
             sky_size_px: sky_size * tile_size_px,
             tile_size_px,
+            ui_size_px: Vec2::new(320.0, 180.0),
         }
     }
 }
@@ -51,6 +53,7 @@ pub struct ScreenMetrics {
     pub sky_size: Vec2,
     pub sky_start: Vec2,
     pub tile_size: Vec2,
+    pub ui_size: Vec2,
 }
 
 impl ScreenMetrics {
