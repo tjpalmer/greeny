@@ -3,6 +3,7 @@ use macroquad::prelude::*;
 use crate::info::GameMetrics;
 
 pub struct Assets {
+    pub icons: Font,
     pub mountains: Texture2D,
     pub tile_info: TileInfo,
     pub tiles: Texture2D,
@@ -11,6 +12,7 @@ pub struct Assets {
 impl Assets {
     pub fn load(game_metrics: &GameMetrics) -> Self {
         Assets {
+            icons: load_ttf_font_from_bytes(ICONS).unwrap(),
             mountains: load_texture(MOUNTAINS),
             tile_info: TileInfo::new(game_metrics),
             tiles: load_texture(TILES),
@@ -64,5 +66,6 @@ pub fn load_texture(bytes: &[u8]) -> Texture2D {
     texture
 }
 
-pub const MOUNTAINS: &[u8] = include_bytes!("../sprites/mountains.png");
-pub const TILES: &[u8] = include_bytes!("../sprites/distinct.png");
+pub const ICONS: &[u8] = include_bytes!("../assets/fontello/fontello.ttf");
+pub const MOUNTAINS: &[u8] = include_bytes!("../assets/mountains.png");
+pub const TILES: &[u8] = include_bytes!("../assets/distinct.png");

@@ -89,6 +89,16 @@ impl Game {
         );
         self.draw_world(true);
         self.mask_edges();
+        draw_text_ex(
+            "\u{e801}",
+            10.0,
+            50.0,
+            TextParams {
+                font_size: 50,
+                font: Some(&assets.icons),
+                ..Default::default()
+            },
+        );
     }
 
     fn draw_tile(&self, tile: Tile, pos: Vec2) {
