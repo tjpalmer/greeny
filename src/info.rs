@@ -49,6 +49,7 @@ pub struct ScreenMetrics {
     pub full_start: Vec2,
     pub ground_size: Vec2,
     pub ground_start: Vec2,
+    pub icon_size: f32,
     pub scale: Vec2,
     pub sky_size: Vec2,
     pub sky_start: Vec2,

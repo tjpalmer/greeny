@@ -1,5 +1,5 @@
+use macroquad::ui::{Skin, hash, root_ui, widgets};
 use macroquad::{miniquad::window::screen_size, prelude::*};
-// use std::time::{Duration, Instant};
 
 use crate::assets::Assets;
 use crate::info::{GameMetrics, ScreenMetrics};
@@ -7,13 +7,23 @@ use crate::world::{AnimalKind, Occupant, Plant, Tile, World};
 
 #[derive(Default)]
 pub struct Game {
+    input: Input,
     assets: Option<Assets>,
     fullscreen: bool,
     facing_x: f32,
     game_metrics: GameMetrics,
     pos: Vec2,
     screen_metrics: ScreenMetrics,
+    icon_skin: Option<Skin>,
     world: World,
+}
+
+#[derive(Default)]
+pub struct Input {
+    down: bool,
+    right: bool,
+    up: bool,
+    left: bool,
 }
 
 impl Game {
@@ -24,6 +34,8 @@ impl Game {
             self.update_screen();
             self.handle_input();
             self.draw();
+            // Unfortunately after draw, but not a huge deal.
+            self.ui();
             next_frame().await
         }
     }
@@ -69,7 +81,7 @@ impl Game {
             Color::from_hex(0xC5AD95),
         );
         // draw_text("IT WORKS!", 20.0, 20.0, 30.0, DARKGRAY);
-        let pos = screen_metrics.tile(Vec2::new(7.0, 5.0));
+        let pos = screen_metrics.tile(vec2(7.0, 5.0));
         draw_texture_ex(
             &assets.tiles,
             pos.x,
@@ -89,16 +101,7 @@ impl Game {
         );
         self.draw_world(true);
         self.mask_edges();
-        draw_text_ex(
-            "\u{e801}",
-            10.0,
-            50.0,
-            TextParams {
-                font_size: 50,
-                font: Some(&assets.icons),
-                ..Default::default()
-            },
-        );
+        root_ui().pop_skin();
     }
 
     fn draw_tile(&self, tile: Tile, pos: Vec2) {
@@ -140,7 +143,7 @@ impl Game {
         };
         let pos = screen_metrics.tile(pos)
             - Vec2::floor(
-                (source.size() - game_metrics.tile_size_px) * Vec2::new(0.5, 1.0)
+                (source.size() - game_metrics.tile_size_px) * vec2(0.5, 1.0)
                     / game_metrics.tile_size_px,
             ) * game_metrics.tile_size_px
                 * screen_metrics.scale;
@@ -166,7 +169,7 @@ impl Game {
         let min = Vec2::default();
         let max = world.grid.size();
         // Margin needs to be larger than any game item.
-        let margin = Vec2::new(10.0, 10.0);
+        let margin = vec2(10.0, 10.0);
         let extent = game_metrics.ground_center + margin;
         let start = Vec2::clamp(self.pos - extent, min, max);
         let end = Vec2::clamp(self.pos + extent, min, max);
@@ -188,13 +191,16 @@ impl Game {
             };
             for x in start.x as usize..end.x as usize {
                 let tile = world.grid.at(x, y);
-                let pos = Vec2::new(x as f32, draw_y) - start - margin;
+                let pos = vec2(x as f32, draw_y) - start - margin;
                 self.draw_tile(tile, pos);
             }
         }
     }
 
     fn handle_input(&mut self) {
+        // if !is_mouse_button_pressed(MouseButton::Left) {
+        //     self.input = Default::default();
+        // }
         if is_key_pressed(KeyCode::F11)
             || (is_key_down(KeyCode::LeftAlt) || is_key_down(KeyCode::RightAlt))
                 && is_key_pressed(KeyCode::Enter)
@@ -202,18 +208,19 @@ impl Game {
             self.fullscreen = !self.fullscreen;
             set_fullscreen(self.fullscreen);
         }
-        if is_key_pressed(KeyCode::Up) || is_key_pressed(KeyCode::W) {
-            self.maybe_move_by(Vec2::new(0.0, -1.0));
+        if is_key_pressed(KeyCode::Up) || is_key_pressed(KeyCode::W) || self.input.up {
+            self.maybe_move_by(vec2(0.0, -1.0));
         }
-        if is_key_pressed(KeyCode::Down) || is_key_pressed(KeyCode::S) {
-            self.maybe_move_by(Vec2::new(0.0, 1.0));
+        if is_key_pressed(KeyCode::Down) || is_key_pressed(KeyCode::S) || self.input.down {
+            self.maybe_move_by(vec2(0.0, 1.0));
         }
-        if is_key_pressed(KeyCode::Left) || is_key_pressed(KeyCode::A) {
-            self.maybe_move_by(Vec2::new(-1.0, 0.0));
+        if is_key_pressed(KeyCode::Left) || is_key_pressed(KeyCode::A) || self.input.left {
+            self.maybe_move_by(vec2(-1.0, 0.0));
         }
-        if is_key_pressed(KeyCode::Right) || is_key_pressed(KeyCode::D) {
-            self.maybe_move_by(Vec2::new(1.0, 0.0));
+        if is_key_pressed(KeyCode::Right) || is_key_pressed(KeyCode::D) || self.input.right {
+            self.maybe_move_by(vec2(1.0, 0.0));
         }
+        self.input = Default::default();
     }
 
     fn load(&mut self) {
@@ -257,17 +264,54 @@ impl Game {
         }
     }
 
+    fn ui(&mut self) {
+        let Self { screen_metrics, .. } = self;
+        let icon_size = screen_metrics.icon_size;
+        let screen_size = Vec2::from_array(screen_size().into());
+        // draw_text_ex(
+        //     "\u{e801}",
+        //     10.0,
+        //     50.0,
+        //     TextParams {
+        //         font_size: 50,
+        //         font: Some(&assets.icons),
+        //         ..Default::default()
+        //     },
+        // );
+        root_ui().push_skin(self.icon_skin.as_ref().unwrap());
+        let gap = 10.0 * screen_metrics.scale;
+        let step_y = vec2(0.0, icon_size + 2.0 * gap.y);
+        // Up/Down
+        let pos = gap;
+        if root_ui().button(pos, "\u{e803}") {
+            self.input.up = true;
+        }
+        if root_ui().button(pos + step_y, "\u{e800}") {
+            self.input.down = true;
+        }
+        // Left/Right
+        let pos = vec2(screen_size.x - gap.x - icon_size, gap.y);
+        if root_ui().button(pos, "\u{e801}") {
+            self.input.left = true;
+        }
+        if root_ui().button(pos + step_y, "\u{e802}") {
+            self.input.right = true;
+        }
+    }
+
     fn update_screen(&mut self) {
         let screen_size = Vec2::from_array(screen_size().into());
         let Self { game_metrics, .. } = self;
         let scale = Vec2::floor(screen_size / game_metrics.ui_size_px);
         let scale = Vec2::splat(scale.x.min(scale.y));
+        let scale_changed = self.screen_metrics.scale != scale;
         let ui_size = scale * game_metrics.ui_size_px;
         let ui_start = Vec2::floor((screen_size - ui_size) * 0.5);
         let full_size = scale * game_metrics.full_size_px;
-        let full_start = Vec2::new(((screen_size - full_size).x * 0.5).floor(), ui_start.y);
+        let full_start = vec2(((screen_size - full_size).x * 0.5).floor(), ui_start.y);
         let ground_start = full_start + scale * game_metrics.ground_start_px;
         let ground_size = scale * game_metrics.ground_size_px;
+        let icon_size = scale.y * 30.0;
         let sky_size = scale * game_metrics.sky_size_px;
         let sky_start = full_start;
         let tile_size = scale * game_metrics.tile_size_px;
@@ -276,11 +320,34 @@ impl Game {
             full_start,
             ground_size,
             ground_start,
+            icon_size,
             scale,
             sky_size,
             sky_start,
             tile_size,
             ui_size,
         };
+        if scale_changed || self.icon_skin.is_none() {
+            self.update_skin();
+        }
+    }
+
+    fn update_skin(&mut self) {
+        let button_style = root_ui()
+            .style_builder()
+            .with_font(&self.assets.as_ref().unwrap().icons)
+            .unwrap()
+            .color(BLANK)
+            .color_clicked(BLANK)
+            .color_hovered(BLANK)
+            .font_size(self.screen_metrics.icon_size as u16)
+            .text_color(WHITE)
+            .text_color_clicked(Color::from_rgba(0xC0, 0xC0, 0xC0, 255))
+            .text_color_hovered(WHITE)
+            .build();
+        self.icon_skin = Some(Skin {
+            button_style,
+            ..root_ui().default_skin()
+        });
     }
 }
