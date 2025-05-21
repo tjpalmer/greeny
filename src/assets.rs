@@ -50,7 +50,7 @@ impl TileInfo {
             jack: Vec2::new(7.0, 8.0) * game_metrics.tile_size_px,
             javelina: Vec2::new(5.0, 9.0) * game_metrics.tile_size_px,
             nopal_big: rect(6, 6, 3, 2),
-            nopal_small: rect(5, 6, 1, 1),
+            nopal_small: rect(4, 6, 1, 1),
             ocotillo: rect(11, 5, 3, 3),
             rattler: Vec2::new(7.0, 9.0) * game_metrics.tile_size_px,
             runner: Vec2::new(8.0, 8.0) * game_metrics.tile_size_px,

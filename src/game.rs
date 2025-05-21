@@ -75,6 +75,12 @@ impl Game {
             WHITE,
             DrawTextureParams {
                 dest_size: Some(screen_metrics.full_size),
+                source: Some(Rect::new(
+                    0.0,
+                    0.0,
+                    game_metrics.full_size_px.x,
+                    game_metrics.full_size_px.y,
+                )),
                 ..Default::default()
             },
         );
@@ -267,7 +273,8 @@ impl Game {
         let gap = vec2(12.0, 8.0) * screen_metrics.scale;
         let step_y = vec2(0.0, icon_size + 2.0 * gap.y);
         // Up/Down
-        let pos = screen_metrics.ui_start + gap;
+        // TODO Force a common button size?
+        let pos = vec2(0.0, screen_metrics.ui_start.y) + gap;
         if root_ui().button(pos, "\u{e803}") {
             self.input.up = true;
         }
@@ -276,8 +283,8 @@ impl Game {
         }
         // Left/Right
         let gap = vec2(9.0, 8.0) * screen_metrics.scale;
-        let pos = screen_metrics.ui_start
-            + vec2(screen_metrics.ui_size.x - gap.x - icon_size, 1.2 * gap.y);
+        let pos =
+            vec2(screen_size.x, screen_metrics.ui_start.y) + vec2(-gap.x - icon_size, 1.2 * gap.y);
         if root_ui().button(pos, "\u{e801}") {
             self.input.left = true;
         }
@@ -289,7 +296,7 @@ impl Game {
     fn update_screen(&mut self) {
         let screen_size = Vec2::from_array(screen_size().into());
         let Self { game_metrics, .. } = self;
-        let scale = Vec2::floor(screen_size / game_metrics.ui_size_px);
+        let scale = screen_size / game_metrics.ui_size_px;
         let scale = Vec2::splat(scale.x.min(scale.y));
         let scale_changed = self.screen_metrics.scale != scale;
         let ui_size = scale * game_metrics.ui_size_px;
