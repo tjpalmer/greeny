@@ -89,7 +89,7 @@ impl Game {
             Color::from_hex(0xC5AD95),
         );
         // draw_text("IT WORKS!", 20.0, 20.0, 30.0, DARKGRAY);
-        let pos = screen_metrics.tile(vec2(7.0, 5.0));
+        let pos = screen_metrics.tile(vec2(7.0, 4.0));
         draw_texture_ex(
             &assets.tiles,
             pos.x,
@@ -189,7 +189,7 @@ impl Game {
                         continue;
                     }
                     // TODO This formula ended up being hacky.
-                    self.pos.y - (y as f32 - self.pos.y) - margin.y
+                    self.pos.y - (y as f32 - self.pos.y) - margin.y + 2.0
                 }
                 true => {
                     if (y as f32) < self.pos.y - game_metrics.ground_center.y {
@@ -264,7 +264,7 @@ impl Game {
         //     },
         // );
         root_ui().push_skin(self.icon_skin.as_ref().unwrap());
-        let gap = 10.0 * screen_metrics.scale;
+        let gap = vec2(12.0, 8.0) * screen_metrics.scale;
         let step_y = vec2(0.0, icon_size + 2.0 * gap.y);
         // Up/Down
         let pos = screen_metrics.ui_start + gap;
@@ -275,8 +275,9 @@ impl Game {
             self.input.down = true;
         }
         // Left/Right
-        let pos =
-            screen_metrics.ui_start + vec2(screen_metrics.ui_size.x - gap.x - icon_size, gap.y);
+        let gap = vec2(9.0, 8.0) * screen_metrics.scale;
+        let pos = screen_metrics.ui_start
+            + vec2(screen_metrics.ui_size.x - gap.x - icon_size, 1.2 * gap.y);
         if root_ui().button(pos, "\u{e801}") {
             self.input.left = true;
         }
@@ -294,10 +295,14 @@ impl Game {
         let ui_size = scale * game_metrics.ui_size_px;
         let ui_start = Vec2::floor((screen_size - ui_size) * 0.5);
         let full_size = scale * game_metrics.full_size_px;
+        // dbg!(screen_size);
+        // dbg!(scale);
+        // dbg!(game_metrics.full_size_px);
+        // dbg!(full_size);
         let full_start = vec2(((screen_size - full_size).x * 0.5).floor(), ui_start.y);
         let ground_start = full_start + scale * game_metrics.ground_start_px;
         let ground_size = scale * game_metrics.ground_size_px;
-        let icon_size = scale.y * 30.0;
+        let icon_size = scale.y * 25.0;
         let sky_size = scale * game_metrics.sky_size_px;
         let sky_start = full_start;
         let tile_size = scale * game_metrics.tile_size_px;
