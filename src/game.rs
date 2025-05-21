@@ -51,6 +51,14 @@ impl Game {
             panic!()
         };
         clear_background(BLACK);
+        // Clip so we can be sloppy in drawing.
+        let gl = unsafe { get_internal_gl().quad_gl };
+        gl.scissor(Some((
+            screen_metrics.full_start.x as i32,
+            screen_metrics.full_start.y as i32,
+            screen_metrics.full_size.x as i32,
+            screen_metrics.full_size.y as i32,
+        )));
         // Sky.
         draw_rectangle(
             screen_metrics.sky_start.x,
@@ -100,7 +108,8 @@ impl Game {
             },
         );
         self.draw_world(true);
-        self.mask_edges();
+        // Reset clip rect to draw ui.
+        gl.scissor(None);
         root_ui().pop_skin();
     }
 
@@ -230,30 +239,6 @@ impl Game {
         self.pos = Vec2::floor(world.grid.size() * 0.5);
     }
 
-    fn mask_edges(&self) {
-        // Better would be scissors or render to texture then to screen.
-        // I can't seem to access scissors, and render to texture was failing in wasm.
-        let Self { screen_metrics, .. } = self;
-        let screen_size = Vec2::from_array(screen_size().into());
-        draw_rectangle(0.0, 0.0, screen_size.x, screen_metrics.full_start.y, BLACK);
-        draw_rectangle(0.0, 0.0, screen_metrics.full_start.x, screen_size.y, BLACK);
-        let full_end = screen_metrics.full_start + screen_metrics.full_size;
-        draw_rectangle(
-            full_end.x,
-            0.0,
-            screen_size.x - full_end.x,
-            screen_size.y,
-            BLACK,
-        );
-        draw_rectangle(
-            0.0,
-            full_end.y,
-            screen_size.x,
-            screen_size.y - full_end.y,
-            BLACK,
-        );
-    }
-
     fn maybe_move_by(&mut self, vec: Vec2) {
         let next = self.pos + vec;
         if vec.x != 0.0 {
@@ -282,7 +267,7 @@ impl Game {
         let gap = 10.0 * screen_metrics.scale;
         let step_y = vec2(0.0, icon_size + 2.0 * gap.y);
         // Up/Down
-        let pos = gap;
+        let pos = screen_metrics.ui_start + gap;
         if root_ui().button(pos, "\u{e803}") {
             self.input.up = true;
         }
@@ -290,7 +275,8 @@ impl Game {
             self.input.down = true;
         }
         // Left/Right
-        let pos = vec2(screen_size.x - gap.x - icon_size, gap.y);
+        let pos =
+            screen_metrics.ui_start + vec2(screen_metrics.ui_size.x - gap.x - icon_size, gap.y);
         if root_ui().button(pos, "\u{e801}") {
             self.input.left = true;
         }
@@ -326,6 +312,7 @@ impl Game {
             sky_start,
             tile_size,
             ui_size,
+            ui_start,
         };
         if scale_changed || self.icon_skin.is_none() {
             self.update_skin();
