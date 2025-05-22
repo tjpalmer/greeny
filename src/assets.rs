@@ -44,18 +44,18 @@ impl TileInfo {
             Rect::new(pos.x, pos.y, size.x, size.y)
         };
         Self {
-            bead: Vec2::new(8.0, 9.0) * game_metrics.tile_size_px,
-            bob: Vec2::new(6.0, 8.0) * game_metrics.tile_size_px,
-            coyote: Vec2::new(6.0, 9.0) * game_metrics.tile_size_px,
-            jack: Vec2::new(7.0, 8.0) * game_metrics.tile_size_px,
-            javelina: Vec2::new(5.0, 9.0) * game_metrics.tile_size_px,
-            nopal_big: rect(6, 6, 3, 2),
-            nopal_small: rect(4, 6, 1, 1),
-            ocotillo: rect(11, 5, 3, 3),
-            rattler: Vec2::new(7.0, 9.0) * game_metrics.tile_size_px,
-            runner: Vec2::new(8.0, 8.0) * game_metrics.tile_size_px,
-            saguaro: rect(1, 3, 3, 5),
-            turkey: Vec2::new(5.0, 8.0) * game_metrics.tile_size_px,
+            bead: Vec2::new(8.0, 10.0) * game_metrics.tile_size_px,
+            bob: Vec2::new(6.0, 9.0) * game_metrics.tile_size_px,
+            coyote: Vec2::new(6.0, 10.0) * game_metrics.tile_size_px,
+            jack: Vec2::new(7.0, 9.0) * game_metrics.tile_size_px,
+            javelina: Vec2::new(5.0, 10.0) * game_metrics.tile_size_px,
+            nopal_big: rect(6, 7, 3, 2),
+            nopal_small: rect(4, 7, 1, 1),
+            ocotillo: rect(11, 6, 3, 3),
+            rattler: Vec2::new(7.0, 10.0) * game_metrics.tile_size_px,
+            runner: Vec2::new(8.0, 9.0) * game_metrics.tile_size_px,
+            saguaro: rect(1, 4, 3, 5),
+            turkey: Vec2::new(5.0, 9.0) * game_metrics.tile_size_px,
         }
     }
 }

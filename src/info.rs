@@ -19,12 +19,12 @@ pub struct GameMetrics {
 
 impl GameMetrics {
     pub fn new() -> Self {
-        let full_size = vec2(15.0, 11.0);
+        let full_size = vec2(15.0, 12.0);
         let sky_size = vec2(full_size.x, 2.0);
         let ground_size = vec2(full_size.x, full_size.y - sky_size.y);
         let ground_start = vec2(0.0, sky_size.y);
         let ground_center = Vec2::floor(ground_size * 0.5);
-        let tile_size_px = vec2(10.0, 10.0);
+        let tile_size_px = vec2(10.0, 9.0);
         let ground_start_px = ground_start * tile_size_px;
         Self {
             full_size,

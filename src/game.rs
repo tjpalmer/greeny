@@ -77,12 +77,12 @@ impl Game {
             screen_metrics.full_start.y,
             WHITE,
             DrawTextureParams {
-                dest_size: Some(screen_metrics.full_size),
+                dest_size: Some(screen_metrics.full_size - vec2(0.0, game_metrics.tile_size_px.y)),
                 source: Some(Rect::new(
                     0.0,
-                    0.0,
+                    game_metrics.tile_size_px.y,
                     game_metrics.full_size_px.x,
-                    game_metrics.full_size_px.y,
+                    game_metrics.full_size_px.y - game_metrics.tile_size_px.y,
                 )),
                 ..Default::default()
             },
@@ -97,7 +97,7 @@ impl Game {
             screen_metrics.ground_size.y,
             Color::from_hex(0xC5AD95),
         );
-        let pos = screen_metrics.tile(vec2(7.0, 4.0));
+        let pos = screen_metrics.tile(vec2(7.0, 5.0));
         draw_texture_ex(
             &assets.tiles,
             pos.x,
@@ -197,7 +197,7 @@ impl Game {
                         continue;
                     }
                     // TODO This formula ended up being hacky.
-                    self.pos.y - (y as f32 - self.pos.y) - margin.y + 2.0
+                    self.pos.y - (y as f32 - self.pos.y) - margin.y
                 }
                 true => {
                     if (y as f32) < self.pos.y - game_metrics.ground_center.y {
