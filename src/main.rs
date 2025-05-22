@@ -9,8 +9,8 @@ mod world;
 fn window_conf() -> Conf {
     Conf {
         // fullscreen: true,
-        window_height: 540,
-        window_width: 960,
+        window_height: 480,
+        window_width: 840,
         window_title: "Green Island".to_owned(),
         ..Default::default()
     }

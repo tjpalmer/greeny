@@ -12,18 +12,20 @@ pub struct Game {
     fullscreen: bool,
     facing_x: f32,
     game_metrics: GameMetrics,
+    icon_skin: Option<Skin>,
+    mouse: Vec2,
     pos: Vec2,
     screen_metrics: ScreenMetrics,
-    icon_skin: Option<Skin>,
+    ui_hidden: bool,
     world: World,
 }
 
 #[derive(Default)]
 pub struct Input {
     down: bool,
+    left: bool,
     right: bool,
     up: bool,
-    left: bool,
 }
 
 impl Game {
@@ -32,10 +34,11 @@ impl Game {
         // set_camera(&Camera2D::from_display_rect(Rect::new(0.0, 0.0, 500.0, 500.0)));
         loop {
             self.update_screen();
+            if !self.ui_hidden {
+                self.ui();
+            }
             self.handle_input();
             self.draw();
-            // Unfortunately after draw, but not a huge deal.
-            self.ui();
             next_frame().await
         }
     }
@@ -94,7 +97,6 @@ impl Game {
             screen_metrics.ground_size.y,
             Color::from_hex(0xC5AD95),
         );
-        // draw_text("IT WORKS!", 20.0, 20.0, 30.0, DARKGRAY);
         let pos = screen_metrics.tile(vec2(7.0, 4.0));
         draw_texture_ex(
             &assets.tiles,
@@ -213,9 +215,18 @@ impl Game {
     }
 
     fn handle_input(&mut self) {
-        // if !is_mouse_button_pressed(MouseButton::Left) {
-        //     self.input = Default::default();
-        // }
+        // Check UI state.
+        // TODO Fade smoothly.
+        let keys = get_keys_pressed();
+        if !keys.is_empty() {
+            self.ui_hidden = true;
+        }
+        let mouse = Vec2::from_array(mouse_position().into());
+        if mouse != self.mouse {
+            self.mouse = mouse;
+            self.ui_hidden = false;
+        }
+        // Full screen toggle.
         if is_key_pressed(KeyCode::F11)
             || (is_key_down(KeyCode::LeftAlt) || is_key_down(KeyCode::RightAlt))
                 && is_key_pressed(KeyCode::Enter)
@@ -223,18 +234,24 @@ impl Game {
             self.fullscreen = !self.fullscreen;
             set_fullscreen(self.fullscreen);
         }
-        if is_key_pressed(KeyCode::Up) || is_key_pressed(KeyCode::W) || self.input.up {
+        // Move.
+        self.input.up |= is_key_pressed(KeyCode::Up) || is_key_pressed(KeyCode::W);
+        self.input.down |= is_key_pressed(KeyCode::Down) || is_key_pressed(KeyCode::S);
+        self.input.left |= is_key_pressed(KeyCode::Left) || is_key_pressed(KeyCode::A);
+        self.input.right |= is_key_pressed(KeyCode::Right) || is_key_pressed(KeyCode::D);
+        if self.input.up {
             self.maybe_move_by(vec2(0.0, -1.0));
         }
-        if is_key_pressed(KeyCode::Down) || is_key_pressed(KeyCode::S) || self.input.down {
+        if self.input.down {
             self.maybe_move_by(vec2(0.0, 1.0));
         }
-        if is_key_pressed(KeyCode::Left) || is_key_pressed(KeyCode::A) || self.input.left {
+        if self.input.left {
             self.maybe_move_by(vec2(-1.0, 0.0));
         }
-        if is_key_pressed(KeyCode::Right) || is_key_pressed(KeyCode::D) || self.input.right {
+        if self.input.right {
             self.maybe_move_by(vec2(1.0, 0.0));
         }
+        // Reset input for next frame.
         self.input = Default::default();
     }
 
@@ -270,7 +287,7 @@ impl Game {
         //     },
         // );
         root_ui().push_skin(self.icon_skin.as_ref().unwrap());
-        let gap = vec2(12.0, 8.0) * screen_metrics.scale;
+        let gap = vec2(7.0, 5.0) * screen_metrics.scale;
         let step_y = vec2(0.0, icon_size + 2.0 * gap.y);
         // Up/Down
         // TODO Force a common button size?
@@ -282,9 +299,8 @@ impl Game {
             self.input.down = true;
         }
         // Left/Right
-        let gap = vec2(9.0, 8.0) * screen_metrics.scale;
-        let pos =
-            vec2(screen_size.x, screen_metrics.ui_start.y) + vec2(-gap.x - icon_size, 1.2 * gap.y);
+        let gap = vec2(4.0, 5.0) * screen_metrics.scale;
+        let pos = vec2(screen_size.x, screen_metrics.ui_start.y) + vec2(-gap.x - icon_size, gap.y);
         if root_ui().button(pos, "\u{e801}") {
             self.input.left = true;
         }
@@ -309,7 +325,7 @@ impl Game {
         let full_start = vec2(((screen_size - full_size).x * 0.5).floor(), ui_start.y);
         let ground_start = full_start + scale * game_metrics.ground_start_px;
         let ground_size = scale * game_metrics.ground_size_px;
-        let icon_size = scale.y * 25.0;
+        let icon_size = scale.y * 20.0;
         let sky_size = scale * game_metrics.sky_size_px;
         let sky_start = full_start;
         let tile_size = scale * game_metrics.tile_size_px;
